@@ -8,6 +8,7 @@ output: html_document
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
 library(ggplot2)
 library(scales)
+library(gridExtra)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -30,7 +31,7 @@ analysis, we will limit the amount of variables we analyze to 13 rather
 than 81 variables. The variables below were selected out of an interest to see
 any relationships and trends between them.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 cols <- c('Term', 'LoanStatus', 'BorrowerRate', 'ProsperScore',
           'EmploymentStatus', 'IsBorrowerHomeowner', 'CreditScoreRangeLower',
           'CreditScoreRangeUpper', 'OpenCreditLines', 'AmountDelinquent',
@@ -41,20 +42,20 @@ loans <- loans[,cols]
 dim(loans)
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 str(loans)
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 summary(loans)
 ```
 
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(Term, data = loans, binwidth = 1)
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 table(loans$Term)
 ```
 
@@ -62,7 +63,7 @@ There are only three distinct values to the loan term (12, 36, and 60 months).
 Going forward, we will treat the Term variable as a factor due to its
 categorical nature.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 loans$Term <- as.factor(loans$Term)
 qplot(Term, data = loans)
 ```
@@ -70,12 +71,12 @@ qplot(Term, data = loans)
 We can clearly see that most loans have a term of 36 months, and it's much less
 common for a loan to have a term of 12 months.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(LoanStatus, data = loans) +
   theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 table(loans$LoanStatus)
 ```
 
@@ -85,12 +86,12 @@ are past due by 1-15 days. There are hardly any loans that are categorized as
 \> 120 days past due. My theory is that this is due to the loans being
 considered Charged off shortly after they become \> 120 days past due.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(MonthlyLoanPayment, data = loans, binwidth = 50) +
   scale_x_continuous(breaks = seq(0, 2000, 250))
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 summary(loans$MonthlyLoanPayment)
 ```
 
@@ -99,7 +100,7 @@ of \$2251.50. The minimum of \$0 is interesting, as I expected all monthly loan
 payments to be greater than \$0. I'm curious which factors contribute to higher
 monthly payments.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 loans$ProsperScore <- as.factor(loans$ProsperScore)
 qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)))
 ```
@@ -108,7 +109,7 @@ The Prosper Score appears to be a normal distribution. The plot above excludes
 any 'NA' values. The Prosper Score is supposed to range from 1-10, so the scores
 of 11 were unexpected.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(BorrowerRate, data = loans, binwidth = 0.01)
 ```
 
@@ -116,7 +117,7 @@ Borrower Rate has a fairly normal distribution, but there is a second peak
 around 0.31. The Prosper Score and Borrower Rate are both generated values, and
 I'm interested in exploring which variables affect these values.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(EmploymentStatus, data = loans) +
   theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
 ```
@@ -130,52 +131,97 @@ I also wonder if leaving the response blank, or the unclear responses of
 "Not available" and "Other" affect the borrower's interest rate and Prosper
 score.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(IsBorrowerHomeowner, data = loans)
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(StatedMonthlyIncome, data = loans) +
   scale_x_continuous(limits = c(0, quantile(loans$StatedMonthlyIncome, 0.99)))
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(StatedMonthlyIncome, data = loans, binwidth = 0.05,
       main = 'Stated Monthly Income (Log10)') +
   scale_x_continuous(trans = log10_trans(),
                      limits = c(1, quantile(loans$StatedMonthlyIncome, 0.99)))
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE}
 qplot(DebtToIncomeRatio,
       data = subset(loans, !is.na(DebtToIncomeRatio)),
       xlim = c(0, quantile(loans$DebtToIncomeRatio, 0.99, na.rm = T)),
       binwidth = .01)
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+There is an even split between homeowners and non-homeowners. The stated monthly
+income is skewed to the right, but the log transformation produces a normal
+distribution. There are very large outliers in the stated monthly income data
+so the top 1% of data was trimmed for the plot.
 
+Similarly, a majority of the Debt to Income Ratios were between 0 and 1 with
+some values at the max of 10.01. The top 1% of data was trimmed for the plot
+above, showing a fairly normal distribution with some skew to the right.
+
+```{r echo=FALSE}
+lower <- qplot(CreditScoreRangeLower, data = loans, binwidth = 1)
+
+upper <- qplot(CreditScoreRangeUpper, data = loans, binwidth = 1)
+
+grid.arrange(lower, upper)
+```
+
+```{r echo=FALSE}
+lower <- lower +
+  scale_x_continuous(
+    limits = c(quantile(loans$CreditScoreRangeLower, .01, na.rm = T), 1000))
+
+upper <- upper +
+  scale_x_continuous(
+    limits = c(quantile(loans$CreditScoreRangeUpper, .01, na.rm = T), 1000))
+
+grid.arrange(lower, upper)
+```
+
+```{r echo=FALSE}
+table(loans$CreditScoreRangeLower)
+```
+
+```{r echo=FALSE}
+table(loans$CreditScoreRangeUpper)
+```
+
+The credit score variables both have normal distributions that look identical,
+but shifted on the x-axis. Looking at the tables of the values, we can see that
+the lower credit scores all end in 0 and the upper scores all end in 9. The
+scores also increment by a factor of 20 and the upper credit scores are all
+higher than the lower scores by exactly 19. Since these values are clearly
+related, we will use the CreditScoreRangeUpper as the credit score variable
+going forward.
+
+```{r echo=FALSE}
+loans$CreditScoreRangeLower <- NULL
 ```
 
 ```{r echo=FALSE, Univariate_Plots}
-
+qplot(OpenCreditLines, data = loans, binwidth = 1)
 ```
 
-```{r echo=FALSE, Univariate_Plots}
-
+```{r echo=FALSE}
+qplot(AmountDelinquent, data = loans,
+      binwidth = 50) +
+  scale_x_continuous(limits = c(0, quantile(loans$AmountDelinquent, 0.99, na.rm = T))) +
+  scale_y_continuous(limits = c(0, 1500))
 ```
 
-```{r echo=FALSE, Univariate_Plots}
-
-```
+The number of open credit lines is a fairly normal distribution. The
+distribution of amount delinquent is, alternatively, clearly skewed to the
+right.
 
 # Univariate Analysis
 
-> **Tip**: Now that you've completed your univariate explorations, it's time to
-reflect on and summarize what you've found. Use the questions below to help you
-gather your observations and add your own if you have other thoughts!
-
 ### What is the structure of your dataset?
+
 
 ### What is/are the main feature(s) of interest in your dataset?
 
