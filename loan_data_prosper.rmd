@@ -7,25 +7,19 @@ output: html_document
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
 library(ggplot2)
+library(scales)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
 loans <- read.csv('prosperLoanData.csv')
 ```
 
-> This data set contains 113,937 loans with 81 variables on each loan, including
+This data set contains 113,937 loans with 81 variables on each loan, including
 loan amount, borrower rate (or interest rate), current loan status, borrower
 income, borrower employment status, borrower credit history, and the latest
 payment information.
 
 # Univariate Plots Section
-
-> **Tip**: In this section, you should perform some preliminary exploration of
-your dataset. Run some summaries of the data and create univariate plots to
-understand the structure of the individual variables in your dataset. Don't
-forget to add a comment after each plot or closely-related group of plots!
-There should be multiple code chunks and text sections; the first one below is
-just to help you get started.
 
 ```{r echo=FALSE, Univariate_Plots}
 dim(loans)
@@ -55,6 +49,117 @@ str(loans)
 summary(loans)
 ```
 
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(Term, data = loans, binwidth = 1)
+```
+
+```{r echo=FALSE, Univariate_Plots}
+table(loans$Term)
+```
+
+There are only three distinct values to the loan term (12, 36, and 60 months).
+Going forward, we will treat the Term variable as a factor due to its
+categorical nature.
+
+```{r echo=FALSE, Univariate_Plots}
+loans$Term <- as.factor(loans$Term)
+qplot(Term, data = loans)
+```
+
+We can clearly see that most loans have a term of 36 months, and it's much less
+common for a loan to have a term of 12 months.
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(LoanStatus, data = loans) +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+```
+
+```{r echo=FALSE, Univariate_Plots}
+table(loans$LoanStatus)
+```
+
+Most of the loans are either Current or Completed, but there are also many that
+are Charged off or Defaulted. Of the loans that are Past Due, the highest number
+are past due by 1-15 days. There are hardly any loans that are categorized as
+\> 120 days past due. My theory is that this is due to the loans being
+considered Charged off shortly after they become \> 120 days past due.
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(MonthlyLoanPayment, data = loans, binwidth = 50) +
+  scale_x_continuous(breaks = seq(0, 2000, 250))
+```
+
+```{r echo=FALSE, Univariate_Plots}
+summary(loans$MonthlyLoanPayment)
+```
+
+Monthly loan payment is skewed to the right, with a minimum of \$0 and a maximum
+of \$2251.50. The minimum of \$0 is interesting, as I expected all monthly loan
+payments to be greater than \$0. I'm curious which factors contribute to higher
+monthly payments.
+
+```{r echo=FALSE, Univariate_Plots}
+loans$ProsperScore <- as.factor(loans$ProsperScore)
+qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)))
+```
+
+The Prosper Score appears to be a normal distribution. The plot above excludes
+any 'NA' values. The Prosper Score is supposed to range from 1-10, so the scores
+of 11 were unexpected.
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(BorrowerRate, data = loans, binwidth = 0.01)
+```
+
+Borrower Rate has a fairly normal distribution, but there is a second peak
+around 0.31. The Prosper Score and Borrower Rate are both generated values, and
+I'm interested in exploring which variables affect these values.
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(EmploymentStatus, data = loans) +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+```
+
+Almost all of the borrowers are employed. A limitation of this dataset that can
+be recognized here is that the data is only for those who applied for a loan and
+were approved. The "riskier"" loan applicants (unemployed) that were denied
+loans are not a part of this dataset.
+
+I also wonder if leaving the response blank, or the unclear responses of
+"Not available" and "Other" affect the borrower's interest rate and Prosper
+score.
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(IsBorrowerHomeowner, data = loans)
+```
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(StatedMonthlyIncome, data = loans) +
+  scale_x_continuous(limits = c(0, quantile(loans$StatedMonthlyIncome, 0.99)))
+```
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(StatedMonthlyIncome, data = loans, binwidth = 0.05,
+      main = 'Stated Monthly Income (Log10)') +
+  scale_x_continuous(trans = log10_trans(),
+                     limits = c(1, quantile(loans$StatedMonthlyIncome, 0.99)))
+```
+
+```{r echo=FALSE, Univariate_Plots}
+qplot(DebtToIncomeRatio,
+      data = subset(loans, !is.na(DebtToIncomeRatio)),
+      xlim = c(0, quantile(loans$DebtToIncomeRatio, 0.99, na.rm = T)),
+      binwidth = .01)
+```
+
+```{r echo=FALSE, Univariate_Plots}
+
+```
+
+```{r echo=FALSE, Univariate_Plots}
+
+```
 
 ```{r echo=FALSE, Univariate_Plots}
 
