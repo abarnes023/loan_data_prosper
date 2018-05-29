@@ -18,7 +18,7 @@ loans <- read.csv('prosperLoanData.csv')
 This data set contains 113,937 loans with 81 variables on each loan, including
 loan amount, borrower rate (or interest rate), current loan status, borrower
 income, borrower employment status, borrower credit history, and the latest
-payment information.
+payment information. The data set was last updated on March 11, 2014.
 
 # Univariate Plots Section
 
@@ -101,6 +101,15 @@ payments to be greater than \$0. I'm curious which factors contribute to higher
 monthly payments.
 
 ```{r echo=FALSE}
+subset(loans, MonthlyLoanPayment > 2000)
+```
+
+Subsetting the data to view loans with monthly payments over \$2000, it seems
+that the borrower generally has a high stated monthly income,  has no amount
+delinquent, is employed, and has a high credit score. Also, the terms are all
+12 months and the borrower rates are all under 0.15.
+
+```{r echo=FALSE}
 loans$ProsperScore <- as.factor(loans$ProsperScore)
 qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)))
 ```
@@ -154,10 +163,12 @@ qplot(DebtToIncomeRatio,
       binwidth = .01)
 ```
 
-There is an even split between homeowners and non-homeowners. The stated monthly
-income is skewed to the right, but the log transformation produces a normal
-distribution. There are very large outliers in the stated monthly income data
-so the top 1% of data was trimmed for the plot.
+There is an even split between homeowners and non-homeowners. Does being a
+homeowner affect the Prosper Score?
+
+The stated monthly income is skewed to the right, but the log transformation
+produces a normal distribution. There are very large outliers in the stated
+monthly income data so the top 1% of data was trimmed for the plot.
 
 Similarly, a majority of the Debt to Income Ratios were between 0 and 1 with
 some values at the max of 10.01. The top 1% of data was trimmed for the plot
@@ -200,10 +211,17 @@ related, we will use the CreditScoreRangeUpper as the credit score variable
 going forward.
 
 ```{r echo=FALSE}
-loans$CreditScoreRangeLower <- NULL
+summary(loans$CreditScoreRangeUpper)
 ```
 
-```{r echo=FALSE, Univariate_Plots}
+According to [ValuePenguin](https://www.valuepenguin.com/average-credit-score),
+the average credit score in the U.S. in 2014 was 693. Here we can see that the
+mean and median of the CreditScoreRangeUpper in our data set is higher than
+this, but again this is the upper value on the credit score range. I'm surprised
+to see here that the upper credit scores for those approved for loans is not
+much higher than the average in the U.S. in 2014.
+
+```{r echo=FALSE}
 qplot(OpenCreditLines, data = loans, binwidth = 1)
 ```
 
@@ -214,14 +232,20 @@ qplot(AmountDelinquent, data = loans,
   scale_y_continuous(limits = c(0, 1500))
 ```
 
-The number of open credit lines is a fairly normal distribution. The
-distribution of amount delinquent is, alternatively, clearly skewed to the
-right.
+The number of open credit lines is a fairly normal distribution. Most people
+have less than 20 open credit lines. The distribution of amount delinquent is,
+alternatively, clearly skewed to the right. Most people are not deliquent at
+all.
 
 # Univariate Analysis
 
 ### What is the structure of your dataset?
 
+The dataset being analyzed contains 113,937 loans with 13 variables (Term,
+LoanStatus, MonthlyLoanPayment, ProsperScore, BorrowerRate, EmploymentStatus,
+IsBorrowerHomeowner, StatedMonthlyIncome, DebtToIncomeRatio,
+CreditScoreRangeLower, CreditScoreRangeUpper, OpenCreditLines, and
+AmountDelinquent).
 
 ### What is/are the main feature(s) of interest in your dataset?
 
