@@ -116,7 +116,8 @@ qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)))
 
 The Prosper Score appears to be a normal distribution. The plot above excludes
 any 'NA' values. The Prosper Score is supposed to range from 1-10, so the scores
-of 11 were unexpected.
+of 11 were unexpected. I'm hesitant to treat a score of 11 as the best score
+since it may be an entry error.
 
 ```{r echo=FALSE}
 qplot(BorrowerRate, data = loans, binwidth = 0.01)
@@ -241,23 +242,52 @@ all.
 
 ### What is the structure of your dataset?
 
-The dataset being analyzed contains 113,937 loans with 13 variables (Term,
+The data set being analyzed contains 113,937 loans with 13 variables (Term,
 LoanStatus, MonthlyLoanPayment, ProsperScore, BorrowerRate, EmploymentStatus,
 IsBorrowerHomeowner, StatedMonthlyIncome, DebtToIncomeRatio,
 CreditScoreRangeLower, CreditScoreRangeUpper, OpenCreditLines, and
 AmountDelinquent).
 
+The original data set contained 81 variables, but in this project we are
+focusing on 13 variables of interest.
+
+Some initial observations from the data are:
+- Most loans have a 36 month term
+- Borrower rate peaks around 0.15, but also again around 0.31
+- The median upper credit score is about the same as the average U.S credit
+score
+- There are some outliers in the debt to income ratio at 10.01
+- Some monthly loan payments are much higher than average
+
 ### What is/are the main feature(s) of interest in your dataset?
+
+The main feature of interest is ProsperScore. I want to explore how the borrower
+factors such as EmploymentStatus, CreditScoreRangeUpper, and StatedMonthlyIncome
+affect the ProsperScore. Also, I want to see how ProsperScore relates to the
+loan details such as BorrowerRate, MonthlyLoanPayment, and LoanStatus.
 
 ### What other features in the dataset do you think will help support your \
 investigation into your feature(s) of interest?
 
+As stated above, I think the variables relating to the borrower's profile will
+all contribute to the ProsperScore. I think the CreditScoreRangeUpper,
+StatedMonthlyIncome, and DebtToIncomeRatio will contribute the most. Further,
+I think the ProsperScore will correlate with the BorrowerRate and
+MonthlyLoanPayment, and will be predictive of the LoanStatus.
+
 ### Did you create any new variables from existing variables in the dataset?
+
+I did not create any new variables, but I did alter existing variables. I made
+both ProsperScore and Term factor variables since the numerical values fall
+within distinct categories.
 
 ### Of the features you investigated, were there any unusual distributions? \
 Did you perform any operations on the data to tidy, adjust, or change the form \
 of the data? If so, why did you do this?
 
+I performed a log transformation on the StatedMonthlyIncome since the data was
+skewed to the right. I wanted to see if the log transformation would normalize
+the data. The transformed data did create a more normal looking distribution.
 
 # Bivariate Plots Section
 
