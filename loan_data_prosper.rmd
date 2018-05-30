@@ -264,8 +264,9 @@ qplot(AmountDelinquent, data = loans,
 ```
 
 ```{r}
-qplot(AmountDelinquent, data = subset(loans, AmountDelinquent > 0), binwidth = 0.1) +
-  scale_x_log10()
+qplot(AmountDelinquent, data = subset(loans, AmountDelinquent > 0),
+      binwidth = 0.1) +
+  scale_x_log10(breaks = c(10, 100, 1000, 10000))
 ```
 
 
@@ -293,13 +294,14 @@ Some initial observations from the data are:
 - Borrower rate peaks around 0.15, but also again around 0.31
 - The median upper credit score is about the same as the average U.S credit
 score
-- There are some outliers in the debt to income ratio at 10.01
+- There are extreme values in the debt to income ratio at 10.01
 - Some monthly loan payments are much higher than average
+- Some Prosper scores are an 11, outside the scale of 1-10
 
 ### What is/are the main feature(s) of interest in your dataset?
 
 The main feature of interest is ProsperScore. I want to explore how the borrower
-factors such as EmploymentStatus, CreditScoreRangeUpper, and StatedMonthlyIncome
+profile such as EmploymentStatus, CreditScoreRangeUpper, and StatedMonthlyIncome
 affect the ProsperScore. Also, I want to see how ProsperScore relates to the
 loan details such as BorrowerRate, MonthlyLoanPayment, and LoanStatus.
 
@@ -322,9 +324,10 @@ within distinct categories.
 Did you perform any operations on the data to tidy, adjust, or change the form \
 of the data? If so, why did you do this?
 
-I performed a log transformation on the StatedMonthlyIncome since the data was
-skewed to the right. I wanted to see if the log transformation would normalize
-the data. The transformed data did create a more normal looking distribution.
+I performed a log transformation on the StatedMonthlyIncome and AmountDelinquent
+since the data in both plots was skewed to the right. I wanted to see if the log
+transformation would normalize the data. The transformed data did create a more
+normal looking distribution for both variables.
 
 # Bivariate Plots Section
 
