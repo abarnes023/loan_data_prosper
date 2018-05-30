@@ -101,13 +101,24 @@ payments to be greater than \$0. I'm curious which factors contribute to higher
 monthly payments.
 
 ```{r echo=FALSE}
-subset(loans, MonthlyLoanPayment > 2000)
+summary(subset(loans, MonthlyLoanPayment == 0))
+```
+
+Subsetting the data to view loans with monthly payments of $0, we can see that
+categories such as CreditScoreRangeLower and StatedMonthlyIncome are lower than
+the overall median. Interestingly, the ProsperScore is higher than average for
+this subset.
+
+```{r echo=FALSE}
+summary(subset(loans, MonthlyLoanPayment > 2000))
 ```
 
 Subsetting the data to view loans with monthly payments over \$2000, it seems
 that the borrower generally has a high stated monthly income,  has no amount
 delinquent, is employed, and has a high credit score. Also, the terms are all
-12 months and the borrower rates are all under 0.15.
+12 months and the borrower rates are all under 0.15. The borrowers in these
+loans appear to be "low risk" borrowers as the higher median Prosper Score
+indicates.
 
 ```{r echo=FALSE}
 loans$ProsperScore <- as.factor(loans$ProsperScore)
@@ -117,7 +128,16 @@ qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)))
 The Prosper Score appears to be a normal distribution. The plot above excludes
 any 'NA' values. The Prosper Score is supposed to range from 1-10, so the scores
 of 11 were unexpected. I'm hesitant to treat a score of 11 as the best score
-since it may be an entry error.
+since it may be an entry error. Let us subset the data to see if there is a
+trend in the loans with a Prosper Score of 11.
+
+```{r echo=FALSE}
+summary(subset(loans, ProsperScore == 11))
+```
+
+The summary of loans with a Prosper Score of 11 do seem to indicate borrowers
+that are low risk. The median StatedMonthlyIncome and OpenCreditLines are higher
+than the overall median.
 
 ```{r echo=FALSE}
 qplot(BorrowerRate, data = loans, binwidth = 0.01)
@@ -176,6 +196,14 @@ some values at the max of 10.01. The top 1% of data was trimmed for the plot
 above, showing a fairly normal distribution with some skew to the right.
 
 ```{r echo=FALSE}
+summary(subset(loans, DebtToIncomeRatio > 10))
+```
+
+Subsetting the data by Debt to Income Ratios greater than 10, we begin to see
+riskier Prosper scores, more Charged off or Defaulted loans, and much lower
+levels of full-time employment and stated monthly incomes.
+
+```{r echo=FALSE}
 lower <- qplot(CreditScoreRangeLower, data = loans, binwidth = 1)
 
 upper <- qplot(CreditScoreRangeUpper, data = loans, binwidth = 1)
@@ -229,14 +257,23 @@ qplot(OpenCreditLines, data = loans, binwidth = 1)
 ```{r echo=FALSE}
 qplot(AmountDelinquent, data = loans,
       binwidth = 50) +
-  scale_x_continuous(limits = c(0, quantile(loans$AmountDelinquent, 0.99, na.rm = T))) +
+  scale_x_continuous(limits = c(0,
+                                quantile(loans$AmountDelinquent, 0.99,
+                                         na.rm = T))) +
   scale_y_continuous(limits = c(0, 1500))
 ```
+
+```{r}
+qplot(AmountDelinquent, data = subset(loans, AmountDelinquent > 0), binwidth = 0.1) +
+  scale_x_log10()
+```
+
 
 The number of open credit lines is a fairly normal distribution. Most people
 have less than 20 open credit lines. The distribution of amount delinquent is,
 alternatively, clearly skewed to the right. Most people are not deliquent at
-all.
+all. A log transformation of the AmountDelinquent data produces a normal
+distribution.
 
 # Univariate Analysis
 
