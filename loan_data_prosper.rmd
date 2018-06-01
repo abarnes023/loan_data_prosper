@@ -47,6 +47,28 @@ dim(loans)
 str(loans)
 ```
 
+Order levels of loan status and employment status by perceived level of benefit
+and risk for the loan company (from worst to best).
+
+```{r echo=FALSE}
+LoanStatusLevels <- c('ChargedOff', 'Defaulted', 'Cancelled',
+                      'Past Due (>120 days)', 'Past Due (91-120 days)',
+                      'Past Due (61-90 days)', 'Past Due (31-60 days)',
+                      'Past Due (16-30 days)', 'Past Due (1-15 days)',
+                      'FinalPaymentInProgress', 'Current', 'Completed')
+loans$LoanStatus <- ordered(loans$LoanStatus, levels = LoanStatusLevels)
+levels(loans$LoanStatus)
+```
+
+```{r echo=FALSE}
+EmploymentLevels <- c('Not employed', '', 'Not available', 'Other', 'Retired',
+                      'Self-employed', 'Part-time', 'Employed', 'Full-time')
+loans$EmploymentStatus <- ordered(loans$EmploymentStatus,
+                                  levels = EmploymentLevels)
+levels(loans$EmploymentStatus)[levels(loans$EmploymentStatus) == ''] <- 'No answer'
+levels(loans$EmploymentStatus)
+```
+
 ```{r echo=FALSE}
 summary(loans)
 ```
@@ -322,7 +344,9 @@ MonthlyLoanPayment, and will be predictive of the LoanStatus.
 
 I created CreditScore by taking the average of the upper and lower credit
 scores, and I made Term a factor variable since the numerical values fell
-within three distinct categories.
+within three distinct categories. I also ordered the EmploymentStatus and
+LoanStatus factors from the perception of best to worst in the eyes of
+the loan company.
 
 ### Of the features you investigated, were there any unusual distributions? \
 Did you perform any operations on the data to tidy, adjust, or change the form \
@@ -371,14 +395,81 @@ the variables borrower rate, monthly loan payment, credit score, and debt to
 income ratio.
 
 ```{r echo=FALSE}
-ggplot(aes(x = ProsperScore, y = BorrowerRate), data = loans) +
-  geom_jitter(alpha = .1)
+ggplot(aes(x = ProsperScore, y = BorrowerRate),
+       data = subset(loans, !is.na(ProsperScore))) +
+  geom_jitter(alpha = 0.1)
 ```
 
 As Prosper score increases, borrower rate tends to decrease. At the low end and
 high end of the x-axis the variation in borrower rate is lower. In the middle of
 the plot (Prosper score of 4-8) we can see a lot more variation in the borrower
 rate.
+
+```{r echo=FALSE}
+ggplot(aes(x = ProsperScore, y = MonthlyLoanPayment),
+       data = subset(loans, !is.na(ProsperScore))) +
+  geom_jitter(alpha = 0.2)
+```
+
+The slight upward trend in monthly loan payment as Prosper score increases can
+be seen here. It's also fairly clear that as Prosper score increases, the
+biggest change to monthly loan payments is a wider range and greater volume of
+values. We don't see many monthly loan payments greater than $750 for Prosper
+scores of 1-3, but the distribution of monthly loan payments for Prosper scores
+greater than 3 do not differ much as the score increases. Basically, borrowers
+with low Prosper scores do not get loans with high monthly payments.
+
+> Note that for the first two plots I placed ProsperScore on the x-axis. This is
+because I believe ProsperScore is used to determine the borrower rate and the 
+monthly loan payment. For the next two plots I'll place Prosper score on the
+y-axis since I believe credit score and debt to income ratio are variables that
+contribute to the calculation of the Prosper score.
+
+```{r echo=FALSE}
+ggplot(aes(x = CreditScore, y = ProsperScore),
+       data = subset(loans, !is.na(ProsperScore))) +
+  geom_jitter()
+```
+
+Similarly to the borrower rate, a low Prosper score typically corresponds to a
+low credit score and a high Prosper score with a high credit score, but the
+middle range of Prosper scores correspond to a wide range of credit scores. In
+other words, it's unlikely for a borrower with a low credit score to have a
+high Prosper score, and vice versa for a borrower with a high credit score. If
+the borrower has a middle range credit score (650-750), their Prosper score
+can range vastly.
+
+```{r echo=FALSE}
+ggplot(aes(x = DebtToIncomeRatio, y = ProsperScore),
+       data = subset(loans, !is.na(ProsperScore))) +
+  geom_jitter()
+```
+
+```{r echo=FALSE}
+ggplot(aes(x = DebtToIncomeRatio, y = ProsperScore),
+       data = subset(loans, !is.na(ProsperScore))) +
+  geom_jitter(alpha = 0.1) +
+  scale_x_continuous(limits = c(0, 2.5))
+```
+
+Here we can see the slight negative correlation between debt to income ratio
+and Prosper score.
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
 
 ```{r echo=FALSE}
 
