@@ -9,6 +9,7 @@ output: html_document
 library(ggplot2)
 library(scales)
 library(gridExtra)
+library(psych)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -121,8 +122,9 @@ loans appear to be "low risk" borrowers as the higher median Prosper Score
 indicates.
 
 ```{r echo=FALSE}
-loans$ProsperScore <- as.factor(loans$ProsperScore)
-qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)))
+qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)),
+      binwidth = 1) +
+  scale_x_continuous(breaks = seq(1,11,1))
 ```
 
 The Prosper Score appears to be a normal distribution. The plot above excludes
@@ -171,7 +173,8 @@ qplot(StatedMonthlyIncome, data = loans) +
 ```
 
 ```{r echo=FALSE}
-qplot(StatedMonthlyIncome, data = loans, binwidth = 0.05,
+qplot(StatedMonthlyIncome, data = subset(loans, StatedMonthlyIncome > 0),
+      binwidth = 0.05,
       main = 'Stated Monthly Income (Log10)') +
   scale_x_continuous(trans = log10_trans(),
                      limits = c(1, quantile(loans$StatedMonthlyIncome, 0.99)))
@@ -235,20 +238,21 @@ The credit score variables both have normal distributions that look identical,
 but shifted on the x-axis. Looking at the tables of the values, we can see that
 the lower credit scores all end in 0 and the upper scores all end in 9. The
 scores also increment by a factor of 20 and the upper credit scores are all
-higher than the lower scores by exactly 19. Since these values are clearly
-related, we will use the CreditScoreRangeUpper as the credit score variable
-going forward.
+higher than the lower scores by exactly 19. Since these values represent a
+credit score range that seems to vary by exactly 19 for each borrower, we will
+create a new variable CreditScore that is the mean of CreditScoreRangeLower and
+CreditScoreRangeUpper.
 
 ```{r echo=FALSE}
-summary(loans$CreditScoreRangeUpper)
+loans$CreditScore <- (loans$CreditScoreRangeLower+loans$CreditScoreRangeUpper)/2
+summary(loans$CreditScore)
 ```
 
 According to [ValuePenguin](https://www.valuepenguin.com/average-credit-score),
 the average credit score in the U.S. in 2014 was 693. Here we can see that the
-mean and median of the CreditScoreRangeUpper in our data set is higher than
-this, but again this is the upper value on the credit score range. I'm surprised
-to see here that the upper credit scores for those approved for loans is not
-much higher than the average in the U.S. in 2014.
+mean (695) and median (690) of the CreditScore in our data set are right around
+this value. I'm surprised to see here that the credit scores for those approved
+for loans is not higher than the average in the U.S. in 2014.
 
 ```{r echo=FALSE}
 qplot(OpenCreditLines, data = loans, binwidth = 1)
@@ -301,24 +305,24 @@ score
 ### What is/are the main feature(s) of interest in your dataset?
 
 The main feature of interest is ProsperScore. I want to explore how the borrower
-profile such as EmploymentStatus, CreditScoreRangeUpper, and StatedMonthlyIncome
-affect the ProsperScore. Also, I want to see how ProsperScore relates to the
-loan details such as BorrowerRate, MonthlyLoanPayment, and LoanStatus.
+profile such as EmploymentStatus, CreditScore, and StatedMonthlyIncome affect
+the ProsperScore. Also, I want to see how ProsperScore relates to the loan
+details such as BorrowerRate, MonthlyLoanPayment, and LoanStatus.
 
 ### What other features in the dataset do you think will help support your \
 investigation into your feature(s) of interest?
 
 As stated above, I think the variables relating to the borrower's profile will
-all contribute to the ProsperScore. I think the CreditScoreRangeUpper,
+all contribute to the ProsperScore. I think the CreditScore,
 StatedMonthlyIncome, and DebtToIncomeRatio will contribute the most. Further,
 I think the ProsperScore will correlate with the BorrowerRate and
 MonthlyLoanPayment, and will be predictive of the LoanStatus.
 
 ### Did you create any new variables from existing variables in the dataset?
 
-I did not create any new variables, but I did alter existing variables. I made
-both ProsperScore and Term factor variables since the numerical values fall
-within distinct categories.
+I created CreditScore by taking the average of the upper and lower credit
+scores, and I made Term a factor variable since the numerical values fell
+within three distinct categories.
 
 ### Of the features you investigated, were there any unusual distributions? \
 Did you perform any operations on the data to tidy, adjust, or change the form \
@@ -331,13 +335,60 @@ normal looking distribution for both variables.
 
 # Bivariate Plots Section
 
-> **Tip**: Based on what you saw in the univariate plots, what relationships
-between variables might be interesting to look at in this section? Don't limit
-yourself to relationships between a main output feature and one of the
-supporting variables. Try to look at relationships between supporting variables
-as well.
-
 ```{r echo=FALSE, Bivariate_Plots}
+no_cor <- c("CreditScoreRangeLower", "CreditScoreRangeUpper", "LoanStatus",
+            "EmploymentStatus", "IsBorrowerHomeowner")
+r <- cor(loans[, !(names(loans) %in% no_cor)], use = 'complete.obs')
+round(r, 2)
+```
+
+Borrower rate has a moderate (to strong) negative correlation with Prosper score
+and credit score. There are also weak relationships between some of the other
+variables. As credit score goes up, Prosper score tends to go up. A higher
+monthly loan payment also weakly correlates with a higher stated monthly income
+and a lower borrower rate.
+
+```{r echo=FALSE}
+no_plot <- c(no_cor, c('Term', 'AmountDelinquent'))
+pairs.panels(loans[,!(names(loans) %in% no_plot)],
+             jiggle = T, factor = 1)
+```
+
+The Prosper score seems to be moderately correlated with borrower rate
+(negatively) and credit score. Credit score also seems to be moderately
+correlated with monthly loan payment and negatively with borrower rate.
+
+```{r echo=FALSE}
+cat <- c(no_cor[-c(1,2)], 'ProsperScore')
+pairs.panels(loans[,(names(loans) %in% cat)])
+```
+
+There don't seem to be any obvious relationships between Prosper score and any
+of the categorical variables.
+
+I want to take a closer look at the relationships between Prosper score and
+the variables borrower rate, monthly loan payment, credit score, and debt to
+income ratio.
+
+```{r echo=FALSE}
+ggplot(aes(x = ProsperScore, y = BorrowerRate), data = loans) +
+  geom_jitter(alpha = .1)
+```
+
+As Prosper score increases, borrower rate tends to decrease. At the low end and
+high end of the x-axis the variation in borrower rate is lower. In the middle of
+the plot (Prosper score of 4-8) we can see a lot more variation in the borrower
+rate.
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
 
 ```
 
