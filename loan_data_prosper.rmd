@@ -361,7 +361,7 @@ normal looking distribution for both variables.
 
 ```{r echo=FALSE, Bivariate_Plots}
 no_cor <- c("CreditScoreRangeLower", "CreditScoreRangeUpper", "LoanStatus",
-            "EmploymentStatus", "IsBorrowerHomeowner")
+            "EmploymentStatus", "IsBorrowerHomeowner", "Term")
 r <- cor(loans[, !(names(loans) %in% no_cor)], use = 'complete.obs')
 round(r, 2)
 ```
@@ -373,7 +373,7 @@ monthly loan payment also weakly correlates with a higher stated monthly income
 and a lower borrower rate.
 
 ```{r echo=FALSE}
-no_plot <- c(no_cor, c('Term', 'AmountDelinquent'))
+no_plot <- c(no_cor, c('AmountDelinquent'))
 pairs.panels(loans[,!(names(loans) %in% no_plot)],
              jiggle = T, factor = 1)
 ```
@@ -383,7 +383,8 @@ The Prosper score seems to be moderately correlated with borrower rate
 correlated with monthly loan payment and negatively with borrower rate.
 
 ```{r echo=FALSE}
-cat <- c(no_cor[-c(1,2)], 'ProsperScore')
+cat <- c('ProsperScore', 'BorrowerRate', 'LoanStatus', 'EmploymentStatus',
+         'IsBorrowerHomeowner')
 pairs.panels(loans[,(names(loans) %in% cat)])
 ```
 
@@ -455,6 +456,9 @@ ggplot(aes(x = DebtToIncomeRatio, y = ProsperScore),
 Here we can see the slight negative correlation between debt to income ratio
 and Prosper score.
 
+Let us next take a look at borrower rate vs. monthly loan payment and credit
+score as these variables had weak to moderate correlations with borrower rate.
+
 ```{r echo=FALSE}
 
 ```
@@ -462,6 +466,9 @@ and Prosper score.
 ```{r echo=FALSE}
 
 ```
+
+Next, I'll look at how Prosper score and borrower rate may fluctuate based on
+the categorical variables (loan status, employment, and homeowners).
 
 ```{r echo=FALSE}
 
