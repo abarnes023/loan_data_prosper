@@ -10,6 +10,7 @@ library(ggplot2)
 library(scales)
 library(gridExtra)
 library(psych)
+library(RColorBrewer)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -549,7 +550,9 @@ ggplot(aes(x = EmploymentStatus, y = BorrowerRate),
 
 Lower average Prosper scores can be seen for borrowers with employment statuses
 of not employed, other, and self-employed, while higher average scores
-correspond with retired, part-time and full-time.
+correspond with retired, part-time and full-time. Based on this, I will begin
+treating employment status as a nominal variable. Trying to order the employment
+status categories does not seem feasible.
 
 The borrower rate is generally higher for those that are not employed, but
 otherwise there isn't much difference across employment levels.
@@ -618,11 +621,56 @@ score. Credit score also had a fairly strong correlation with borrower rate.
 # Multivariate Plots Section
 
 First I want to investigate the relationship above between borrower rate and
-monthly loan payment, colored by the catgeroical variables.
+monthly loan payment against the categorical variables.
 
 ```{r echo=FALSE, Multivariate_Plots}
-
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate), data = loans) +
+  geom_point(alpha = 1/5) +
+  scale_x_continuous(limits = c(0, 1250)) +
+  facet_wrap(~EmploymentStatus)
 ```
+
+```{r echo=FALSE}
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
+       data = subset(loans, !is.na(loans$LoanStatus))) +
+  geom_point(alpha = 1/5) +
+  scale_x_continuous(limits = c(0, 1250)) +
+  facet_wrap(~LoanStatus)
+```
+
+```{r echo=FALSE}
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
+       data = subset(loans, !is.na(loans$LoanStatus))) +
+  geom_point(aes(color = LoanStatus)) +
+  scale_x_continuous(limits = c(0, 1250)) +
+  facet_wrap(~EmploymentStatus) +
+  scale_color_brewer(palette = 'Spectral')
+```
+
+It's hard to pull any trends out of the data here. Most of the data contains
+borrowers who are employed, full-time, or self-employed, with a lot of 'not
+available' values as well. Those that are part-time, retired, or not employed
+largely received loans with lower monthly payments. There's also a fairly clear
+negative correlation between borrower rate and monthly loan payment for those
+who are employed.
+
+Similarly, most loans are current, completed, or defaulted. A similar negative
+correlation between borrower rate and monthly loan payment can be seen for
+current loans. Also, interestingly, those that are past due generally have lower
+monthly loan payments. This could be due to the fact that loans overall tend to
+be on the lower side of monthly payments.
+
+```{r echo=FALSE}
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate), data = loans) +
+  geom_point(alpha = 1/5) +
+  scale_x_continuous(limits = c(0, 1250)) +
+  facet_wrap(~IsBorrowerHomeowner)
+```
+
+Again, there is no obvious relationship here.
+
+Let us move on and look at prosper score and borrower rate against the
+categorical variables.
 
 ```{r echo=FALSE}
 
@@ -633,7 +681,7 @@ monthly loan payment, colored by the catgeroical variables.
 ```
 
 ```{r echo=FALSE}
-
+# look at credit score and borrower rate against categorical variables
 ```
 
 ```{r echo=FALSE}
@@ -641,21 +689,7 @@ monthly loan payment, colored by the catgeroical variables.
 ```
 
 ```{r echo=FALSE}
-
-```
-
-```{r echo=FALSE}
-
-```
-
-```{r echo=FALSE}
-
-```
-
-Let us now create a linear regression model 
-
-```{r echo=FALSE}
-
+# linear regression model?
 ```
 
 # Multivariate Analysis
