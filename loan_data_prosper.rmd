@@ -426,8 +426,8 @@ ggplot(aes(x = ProsperScore, y = BorrowerRate),
 ```
 
 As Prosper score increases, borrower rate tends to decrease. At the low end and
-high end of the x-axis the variation in borrower rate is lower. In the middle of
-the plot (Prosper score of 4-8) we can see a lot more variation in the borrower
+high end of the x-axis the range in borrower rate is lower. In the middle of
+the plot (Prosper score of 4-8) we can see a much bigger range in the borrower
 rate.
 
 ```{r echo=FALSE}
@@ -439,12 +439,12 @@ ggplot(aes(x = ProsperScore, y = MonthlyLoanPayment),
 The slight upward trend in monthly loan payment as Prosper score increases can
 be seen here. It's also fairly clear that as Prosper score increases, the
 biggest change to monthly loan payments is a wider range and greater volume of
-values. We don't see many monthly loan payments greater than $750 for Prosper
+values. We don't see many monthly loan payments greater than $500 for Prosper
 scores of 1-3, but the distribution of monthly loan payments for Prosper scores
 greater than 3 do not differ much as the score increases. Basically, borrowers
 with low Prosper scores do not get loans with high monthly payments.
 
-> Note that for the first two plots I placed ProsperScore on the x-axis. This is
+> Note that in the first two plots I placed ProsperScore on the x-axis. This is
 because I believe ProsperScore is used to determine the borrower rate and the 
 monthly loan payment. For the next two plots I'll place Prosper score on the
 y-axis since I believe credit score and debt to income ratio are variables that
@@ -576,22 +576,85 @@ rate.
 investigation. How did the feature(s) of interest vary with other features in \
 the dataset?
 
+The Prosper score and borrower rate had a moderate negative correlation, with
+the borrower rate decreasing as Prosper score increased. There was a big range
+of values in the middle section of Prosper scores (and the middle section of
+borrower rates).
+
+Low Prosper scores make it highly unlikely that the monthly loan payment will
+be greater than $500.
+
+A well-below average credit score generally corresponds to a low Prosper score,
+and a well-above average credit score generally corresponds to a high Prosper
+score. A credit score between 650-750, on the other hand, corresponds to Prosper
+scores that can range vastly.
+
+Debt to income ratio increases tended to weakly correlate with lower Prosper
+scores.
+
+There was a slight upward trend in Prosper score across loan status, but the
+defaulted loans Prosper score values seem to throw off this trend.
+
+Lower average Prosper scores can be seen for borrowers with employment statuses
+of not employed, other, and self-employed, while higher average scores
+correspond with retired, part-time and full-time.
+
+It was surprising to see that being a homeowner had no affect on Prosper score.
+
 ### Did you observe any interesting relationships between the other features \
 (not the main feature(s) of interest)?
 
+Borrower rate tends to decrease as credit score increases, which makes sense. I
+was also very interested in the plot between borrower rate and monthly loan
+payment. There were clear segments that showed sectional linear relationships
+between borrower rate and monthly loan payment. I'm wondering if the distinction
+of these sections corresponds to any other variables.
+
 ### What was the strongest relationship you found?
 
+The strongest bivariate relationship was between borrower rate and Prosper
+score. Credit score also had a fairly strong correlation with borrower rate.
 
 # Multivariate Plots Section
 
-> **Tip**: Now it's time to put everything together. Based on what you found in
-the bivariate plots section, create a few multivariate plots to investigate
-more complex interactions between variables. Make sure that the plots that you
-create here are justified by the plots you explored in the previous section. If
-you plan on creating any mathematical models, this is the section where you
-will do that.
+First I want to investigate the relationship above between borrower rate and
+monthly loan payment, colored by the catgeroical variables.
 
 ```{r echo=FALSE, Multivariate_Plots}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+```{r echo=FALSE}
+
+```
+
+Let us now create a linear regression model 
+
+```{r echo=FALSE}
 
 ```
 
