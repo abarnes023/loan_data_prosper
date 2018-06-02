@@ -276,6 +276,29 @@ mean (695) and median (690) of the CreditScore in our data set are right around
 this value. I'm surprised to see here that the credit scores for those approved
 for loans is not higher than the average in the U.S. in 2014.
 
+We can also see here that credit scores in our data set range from 9.5 to 889.5,
+but the actual range for credit scores is 300 to 850. Let's explore some loans
+with credit scores outside the normal range.
+
+```{r echo=FALSE}
+head(subset(loans, loans$CreditScore < 300), 20)
+```
+
+```{r echo=FALSE}
+head(subset(loans, loans$CreditScore > 850), 20)
+```
+
+These loans do seem to be missing a fair amount of values (there are a lot of
+Prosper scores missing), but since the data here do contain values for many of
+the variables I will not remove these rows. I will remember to subset the data
+for any plots or calculations involving credit score to only include scores from
+300 to 850.
+
+```{r echo=FALSE}
+loans_subset_CreditScore <- subset(loans, loans$CreditScore >=300 &
+                                     loans$CreditScore <= 850)
+```
+
 ```{r echo=FALSE}
 qplot(OpenCreditLines, data = loans, binwidth = 1)
 ```
@@ -362,7 +385,8 @@ normal looking distribution for both variables.
 ```{r echo=FALSE, Bivariate_Plots}
 no_cor <- c("CreditScoreRangeLower", "CreditScoreRangeUpper", "LoanStatus",
             "EmploymentStatus", "IsBorrowerHomeowner", "Term")
-r <- cor(loans[, !(names(loans) %in% no_cor)], use = 'complete.obs')
+r <- cor(loans_subset_CreditScore[, !(names(loans) %in% no_cor)],
+         use = 'complete.obs')
 round(r, 2)
 ```
 
@@ -374,7 +398,7 @@ and a lower borrower rate.
 
 ```{r echo=FALSE}
 no_plot <- c(no_cor, c('AmountDelinquent'))
-pairs.panels(loans[,!(names(loans) %in% no_plot)],
+pairs.panels(loans_subset_CreditScore[,!(names(loans) %in% no_plot)],
              jiggle = T, factor = 1)
 ```
 
@@ -428,7 +452,7 @@ contribute to the calculation of the Prosper score.
 
 ```{r echo=FALSE}
 ggplot(aes(x = CreditScore, y = ProsperScore),
-       data = subset(loans, !is.na(ProsperScore))) +
+       data = subset(loans_subset_CreditScore, !is.na(ProsperScore))) +
   geom_jitter()
 ```
 
@@ -456,44 +480,97 @@ ggplot(aes(x = DebtToIncomeRatio, y = ProsperScore),
 Here we can see the slight negative correlation between debt to income ratio
 and Prosper score.
 
-Let us next take a look at borrower rate vs. monthly loan payment and credit
+Let us also take a look at borrower rate vs. monthly loan payment and credit
 score as these variables had weak to moderate correlations with borrower rate.
 
 ```{r echo=FALSE}
-
+qplot(x = MonthlyLoanPayment, y = BorrowerRate, data = loans)
 ```
 
 ```{r echo=FALSE}
-
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate), data = loans) +
+  geom_point(alpha = 1/50) +
+  scale_x_continuous(limits = c(0, 1250))
 ```
+
+Changing the plot limits and adding transparency reveals clear sections of the
+plot where borrower rate increases linearly as the monthly loan payment
+increases. Also, the highest borrower rates tend to correspond to lower monthly
+payments.
+
+```{r echo=FALSE}
+ggplot(aes(x = CreditScore, y = BorrowerRate),
+      data = loans_subset_CreditScore) +
+  geom_jitter()
+```
+
+The correlation between credit score and borrower rate is clear here - as credit
+score increases, borrower rate decreases.
 
 Next, I'll look at how Prosper score and borrower rate may fluctuate based on
-the categorical variables (loan status, employment, and homeowners).
+the categorical variables (loan status, employment, and homeowners). It is
+important to remember here that the loan status and employment status levels
+were ordered by my own thoughts on levels of borrower risk and ideal loan
+outcomes.
 
 ```{r echo=FALSE}
-
+ggplot(aes(x = LoanStatus, y = ProsperScore),
+       data = subset(loans, !is.na(loans$LoanStatus))) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
 ```
 
 ```{r echo=FALSE}
+ggplot(aes(x = LoanStatus, y = BorrowerRate),
+       data = subset(loans, !is.na(loans$LoanStatus))) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+```
 
+As mentioned above, it's important to remember that the order of these levels
+was determined by my own judgment. There is a slight upward trend in Prosper
+score across loan status, but the defaulted loans Prosper score values seem to
+throw off this trend. There also may be a slight downward trend in borrower rate
+across loan status, but it is not strong at all.
+
+```{r echo=FALSE}
+ggplot(aes(x = EmploymentStatus, y = ProsperScore),
+       data = loans) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
 ```
 
 ```{r echo=FALSE}
+ggplot(aes(x = EmploymentStatus, y = BorrowerRate),
+       data = loans) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+```
 
+Lower average Prosper scores can be seen for borrowers with employment statuses
+of not employed, other, and self-employed, while higher average scores
+correspond with retired, part-time and full-time.
+
+The borrower rate is generally higher for those that are not employed, but
+otherwise there isn't much difference across employment levels.
+
+```{r echo=FALSE}
+ggplot(aes(x = IsBorrowerHomeowner, y = ProsperScore),
+       data = loans) +
+  geom_boxplot()
 ```
 
 ```{r echo=FALSE}
-
+ggplot(aes(x = IsBorrowerHomeowner, y = BorrowerRate),
+       data = loans) +
+  geom_boxplot()
 ```
 
-```{r echo=FALSE}
-
-```
+The borrower's status as a homeowner does not appear to affect the Prosper score
+at all, but not owning a home does seem to correspond with a higher borrower
+rate.
 
 # Bivariate Analysis
-
-> **Tip**: As before, summarize what you found in your bivariate explorations
-here. Use the questions below to guide your discussion.
 
 ### Talk about some of the relationships you observed in this part of the \
 investigation. How did the feature(s) of interest vary with other features in \
