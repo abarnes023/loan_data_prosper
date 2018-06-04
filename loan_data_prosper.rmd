@@ -11,6 +11,7 @@ library(scales)
 library(gridExtra)
 library(psych)
 library(RColorBrewer)
+library(memisc)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -709,8 +710,8 @@ ggplot(aes(x = CreditScore, y = BorrowerRate),
   scale_color_brewer(palette = 'Spectral')
 ```
 
-Low credit scores and high borrower rates tend to correspond to defaulted loans
-as well as employment statuses of not employed or no answer.
+Low credit scores tend to correspond to defaulted loans as well as employment
+statuses of not employed or no answer.
 
 ```{r echo=FALSE}
 ggplot(aes(x = CreditScore, y = BorrowerRate),
@@ -718,8 +719,8 @@ ggplot(aes(x = CreditScore, y = BorrowerRate),
   geom_jitter(aes(color = IsBorrowerHomeowner))
 ```
 
-High credit scores and low borrower rates tend to correspond to homeowners,
-while low credit scores and high borrower rate correspond to non-homeowners.
+High credit scores tend to correspond to homeowners, while low credit scores
+correspond to non-homeowners.
 
 ```{r echo=FALSE}
 ggplot(aes(x = CreditScore, y = BorrowerRate),
@@ -729,7 +730,22 @@ ggplot(aes(x = CreditScore, y = BorrowerRate),
 ```
 
 Borrowers with a higher Prosper score tend to have lower borrower rates, even
-if we hold credit score constant.
+if we hold credit score constant. Also, higher Prosper scores tend to correlate
+with higher credit scores and lower borrower rates.
+
+Previously I had wanted to start out by exploring the Prosper score, but the
+data exploration has made me more interested in predicting the borrower rate.
+Below, I want to create a linear model to see how well we can predict borrower
+rate.
+
+```{r echo=FALSE}
+m1 <- lm(BorrowerRate ~ ProsperScore, data = loans_subset_CreditScore)
+m2 <- update(m1, ~ . + CreditScore)
+m3 <- update(m2, ~ . + MonthlyLoanPayment)
+mtable(m1, m2, m3)
+```
+
+The model accounts for 53.5% of the variance in the borrower rate for a loan.
 
 # Multivariate Analysis
 
@@ -737,10 +753,33 @@ if we hold credit score constant.
 investigation. Were there features that strengthened each other in terms of \
 looking at your feature(s) of interest?
 
+Holding monthly loan payments constant, higher Prosper scores generally equate
+to lower borrower rates. The same relationship can be seen when we hold credit
+scores constant.
+
+These plots along with the correlations seen in the bivariate plots section led
+me to create a linear regression model with these variables.
+
 ### Were there any interesting or surprising interactions between features?
+
+I was mostly surprised to see the absence of any obvious trends across loan
+status, employment status, and homeownership (other than credit score).
 
 ### OPTIONAL: Did you create any models with your dataset? Discuss the \
 strengths and limitations of your model.
+
+For the amount of variables used in this exploration (compared to the 81
+overall variables in the full data set), I think this model is fairly good. With
+the complexities of all of the factors that go into a loan borrower rate, I was
+surprised to see that Prosper score, credit score, and monthly loan payment
+alone account for 53.5% of the variance in the borrower rate.
+
+The model obviously has its limitations since there are many other variables
+that likely affect affect borrower rate in the full data set (and outside it).
+The date the loan was taken out, the borrower's state of residence, the type of
+loan, and many other variables likely have effects on the borrower rate. This is
+definitely not a perfect model, but I do find it relevant to see that three
+variables alone can account for over half of the variance in a loan rate.
 
 ------
 
