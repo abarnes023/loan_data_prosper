@@ -553,7 +553,7 @@ Lower average Prosper scores can be seen for borrowers with employment statuses
 of not employed, other, and self-employed, while higher average scores
 correspond with retired, part-time and full-time. Based on this, I will begin
 treating employment status as a nominal variable. Trying to order the employment
-status categories does not seem feasible.
+status categories does not seem feasible any longer.
 
 The borrower rate is generally higher for those that are not employed, but
 otherwise there isn't much difference across employment levels.
@@ -666,7 +666,9 @@ ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
 ```
 
 Here there is definitely a relationship, with borrower rate increasing as the
-Prosper score decreases while holding the monthly loan payment constant.
+Prosper score decreases while holding the monthly loan payment constant. It
+seems that the linear relationship pieces of the plot noted previously seem to
+correspond to decreases in Prosper score.
 
 Let us move on and look at prosper score and borrower rate against the
 categorical variables.
@@ -785,36 +787,68 @@ variables alone can account for over half of the variance in a loan rate.
 
 # Final Plots and Summary
 
-> **Tip**: You've done a lot of exploration and have built up an understanding
-of the structure of and relationships between the variables in your dataset.
-Here, you will select three plots from all of your previous exploration to
-present here as a summary of some of your most interesting findings. Make sure
-that you have refined your selected plots for good titling, axis labels (with
-units), and good aesthetic choices (e.g. color, transparency). After each plot,
-make sure you justify why you chose each plot by describing what it shows.
-
 ### Plot One
 ```{r echo=FALSE, Plot_One}
-
+qplot(BorrowerRate, data = loans, binwidth = 0.01,
+      main = 'Prosper Loan Borrower Rates',
+      xlab = 'Borrower\'s Interest Rate',
+      ylab = 'Number of Loans',
+      xlim = c(0, 0.4)) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ### Description One
 
+The borrower's interest rate distribution is fairly normal, but contains an
+interesting peak around 0.31. The loan company may approve some 'riskier'
+borrowers for loans and give them higher interest rates in an attempt to make
+more money.
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
-
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate), data = loans) +
+  geom_point(alpha = 1/50) +
+  scale_x_continuous(limits = c(0, 1250)) +
+  scale_y_continuous(limits = c(0.05, 0.35)) +
+  labs(title = 'Borrower Rate vs Loan Payment',
+       x = 'Monthly Loan Payment (in dollars)',
+       y = 'Borrower\'s Interest Rate') +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ### Description Two
 
+Borrower rate and monthly loan payment have a very interesting relationship as
+seen here. There are clear linear trends within the plot. At lower monthly loan
+payments, the borrower rate can rise quickly for the same loan payment. As the
+monthly loan payments go up, borrower rate and loan payment increase together.
 
 ### Plot Three
 ```{r echo=FALSE, Plot_Three}
-
+ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
+       data = subset(loans, !is.na(ProsperScore))) +
+  geom_point(aes(color = as.factor(ProsperScore))) +
+  scale_x_continuous(limits = c(0, 1250)) +
+  scale_color_brewer(palette = 'Spectral') +
+  labs(title = 'Borrower Rate by Loan Payment and Prosper Score',
+       x = 'Monthly Loan Payment (in dollars)',
+       y = 'Borrower\'s Interest Rate',
+       color = 'Prosper Score') +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ### Description Three
+
+Prosper score gives a better understanding to the relationship between borrower
+rate and monthly loan payment. Keeping the monthly loan payment constant, the
+borrower rate increases as Prosper score decreases (indicating a higher risk
+borrower). As the monthly loan payment increases, the loan company is taking on
+a higher risk if the borrower does not pay the money back since they will lose
+more money. For this reason, the loan company increases both the borrower rate
+and monthly loan payment as the Prosper score decreases. This way, the loan
+company is able to earn more interest from the borrower if they do pay the loan
+back. The extra revenue from interest makes it worth it for them to approve the
+loan with a higher loan payment for riskier borrowers.
 
 ------
 
