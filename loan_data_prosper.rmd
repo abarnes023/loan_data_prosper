@@ -6,12 +6,17 @@ output: html_document
 ========================================================
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+library(knitr)
 library(ggplot2)
 library(scales)
 library(gridExtra)
 library(psych)
 library(RColorBrewer)
 library(memisc)
+```
+
+```{r gloabl_options, echo=FALSE}
+opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -153,16 +158,12 @@ qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)),
 ```
 
 The Prosper Score appears to be a normal distribution. The plot above excludes
-any 'NA' values. Since the Prosper score contains distinct values, I want to
-convert it to a factor.
-
-The Prosper Score is also supposed to range from 1-10, so the scores
-of 11 were unexpected. I'm hesitant to treat a score of 11 as the best score
-since it may be an entry error. Let us subset the data to see if there is a
-trend in the loans with a Prosper Score of 11 and if the data is trustworthy.
+any 'NA' values. The Prosper Score is also supposed to range from 1-10, so the
+scores of 11 were unexpected. I'm hesitant to treat a score of 11 as the best
+score since it may be an entry error. Let us subset the data to see if there is
+a trend in the loans with a Prosper Score of 11 and if the data is trustworthy.
 
 ```{r echo=FALSE}
-loans$ProsperScore <- as.factor(loans$ProsperScore)
 summary(subset(loans, ProsperScore == 11))
 ```
 
@@ -374,10 +375,10 @@ MonthlyLoanPayment, and will be predictive of the LoanStatus.
 ### Did you create any new variables from existing variables in the dataset?
 
 I created CreditScore by taking the average of the upper and lower credit
-scores, and I made Term and Prosper score factor variables since the numerical
-values fell within distinct categories. I also ordered the EmploymentStatus and
-LoanStatus factors based on my perception of best to worst from the view of
-the loan company.
+scores, and I made Term a factor variable since the numerical values fell within
+3 distinct categories. I also ordered the EmploymentStatus and LoanStatus
+factors based on my perception of best to worst from the view of the loan
+company.
 
 ### Of the features you investigated, were there any unusual distributions? \
 Did you perform any operations on the data to tidy, adjust, or change the form \
@@ -391,8 +392,10 @@ normal looking distribution for both variables.
 # Bivariate Plots Section
 
 ```{r echo=FALSE, Bivariate_Plots}
+# specify variables to leave out of correlation matrix
 no_cor <- c("CreditScoreRangeLower", "CreditScoreRangeUpper", "LoanStatus",
             "EmploymentStatus", "IsBorrowerHomeowner", "Term")
+
 r <- cor(loans_subset_CreditScore[, !(names(loans) %in% no_cor)],
          use = 'complete.obs')
 round(r, 2)
@@ -406,7 +409,9 @@ and a lower borrower rate. Borrower rate seems to have moderately strong
 correlations with the most variables.
 
 ```{r echo=FALSE}
+# specify variables to leave out of plot matrix
 no_plot <- c(no_cor, c('AmountDelinquent'))
+
 pairs.panels(loans_subset_CreditScore[,!(names(loans) %in% no_plot)],
              jiggle = T, factor = 1)
 ```
@@ -665,7 +670,7 @@ likely to have higher monthly payments and lower borrower rates.
 ```{r}
 ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
        data = subset(loans, !is.na(ProsperScore))) +
-  geom_point(aes(color = ProsperScore)) +
+  geom_point(aes(color = as.factor(ProsperScore))) +
   scale_x_continuous(limits = c(0, 1250)) +
   scale_color_brewer(palette = 'Spectral')
 ```
@@ -732,7 +737,7 @@ correspond to non-homeowners.
 ```{r echo=FALSE}
 ggplot(aes(x = CreditScore, y = BorrowerRate),
        data = subset(loans_subset_CreditScore, !is.na(ProsperScore))) +
-  geom_jitter(aes(color = ProsperScore)) +
+  geom_jitter(aes(color = as.factor(ProsperScore))) +
   scale_color_brewer(palette = 'Spectral')
 ```
 
@@ -752,7 +757,7 @@ m3 <- update(m2, ~ . + MonthlyLoanPayment)
 mtable(m1, m2, m3)
 ```
 
-The model accounts for 54.8% of the variance in the borrower rate for a loan.
+The model accounts for 53.5% of the variance in the borrower rate for a loan.
 
 # Multivariate Analysis
 
@@ -779,7 +784,7 @@ For the amount of variables used in this exploration (compared to the 81
 overall variables in the full data set), I think the linear model above is
 fairly good. With the complexities of all of the factors that go into a loan
 interest rate, I was surprised to see that Prosper score, credit score, and
-monthly loan payment alone account for 54.8% of the variance in the borrower
+monthly loan payment alone account for 53.5% of the variance in the borrower
 rate.
 
 The model obviously has its limitations since there are many other variables
@@ -833,7 +838,7 @@ monthly loan payments go up, borrower rate and loan payment increase together.
 ```{r echo=FALSE, Plot_Three}
 ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
        data = subset(loans, !is.na(ProsperScore))) +
-  geom_point(aes(color = ProsperScore)) +
+  geom_point(aes(color = as.factor(ProsperScore))) +
   scale_x_continuous(limits = c(0, 1250)) +
   scale_color_brewer(palette = 'Spectral') +
   labs(title = 'Borrower Rate by Loan Payment and Prosper Score',
@@ -875,7 +880,7 @@ variables I chose to explore made borrower rate the more intriguing variable.
 By choosing only 13 variables to explore from the full dataset, I absolutely
 introduced some limitations to the model. There are many other factors that I
 did not explore relating to the borrower rate, which is the reason the model
-only accounts for 54.8% of the variance in borrower rate.
+only accounts for 53.5% of the variance in borrower rate.
 
 Other limitations include the fact that this data all comes from Prosper. The
 relationships and models that come from this dataset may be totally different
