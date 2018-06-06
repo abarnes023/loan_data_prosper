@@ -18,7 +18,7 @@ library(memisc)
 loans <- read.csv('prosperLoanData.csv')
 ```
 
-This data set contains 113,937 loans with 81 variables on each loan, including
+This dataset contains 113,937 loans with 81 variables for each loan, including
 loan amount, borrower rate (or interest rate), current loan status, borrower
 income, borrower employment status, borrower credit history, and the latest
 payment information. The data set was last updated on March 11, 2014.
@@ -29,8 +29,7 @@ payment information. The data set was last updated on March 11, 2014.
 dim(loans)
 ```
 
-The original dataset contains almost 114,000 loans with 81 variables. In this
-analysis, we will limit the amount of variables we analyze to 13 rather
+In this analysis, we will limit the amount of variables we analyze to 13 rather
 than 81 variables. The variables below were selected out of an interest to see
 any relationships and trends between them.
 
@@ -49,8 +48,10 @@ dim(loans)
 str(loans)
 ```
 
-Order levels of loan status and employment status by perceived level of benefit
-and risk for the loan company (from worst to best).
+I will try to order the factor levels of loan status and employment status by
+perceived level of benefit and risk for the loan company (from worst to best). I
+understand this may be subjective, but I want to see how the distributions and
+plots display with these variables ordered.
 
 ```{r echo=FALSE}
 LoanStatusLevels <- c('ChargedOff', 'Defaulted', 'Cancelled',
@@ -122,14 +123,14 @@ summary(loans$MonthlyLoanPayment)
 
 Monthly loan payment is skewed to the right, with a minimum of \$0 and a maximum
 of \$2251.50. The minimum of \$0 is interesting, as I expected all monthly loan
-payments to be greater than \$0. I'm curious which factors contribute to higher
-monthly payments.
+payments to be greater than \$0. I want to take a closer look at loans with
+monthly payments of \$0 and those with high monthly payments.
 
 ```{r echo=FALSE}
 summary(subset(loans, MonthlyLoanPayment == 0))
 ```
 
-Subsetting the data to view loans with monthly payments of $0, we can see that
+Subsetting the data to view loans with monthly payments of \$0, we can see that
 categories such as CreditScoreRangeLower and StatedMonthlyIncome are lower than
 the overall median. Interestingly, the ProsperScore is higher than average for
 this subset.
@@ -152,18 +153,22 @@ qplot(x = ProsperScore, data = subset(loans, !is.na(ProsperScore)),
 ```
 
 The Prosper Score appears to be a normal distribution. The plot above excludes
-any 'NA' values. The Prosper Score is supposed to range from 1-10, so the scores
+any 'NA' values. Since the Prosper score contains distinct values, I want to
+convert it to a factor.
+
+The Prosper Score is also supposed to range from 1-10, so the scores
 of 11 were unexpected. I'm hesitant to treat a score of 11 as the best score
 since it may be an entry error. Let us subset the data to see if there is a
-trend in the loans with a Prosper Score of 11.
+trend in the loans with a Prosper Score of 11 and if the data is trustworthy.
 
 ```{r echo=FALSE}
+loans$ProsperScore <- as.factor(loans$ProsperScore)
 summary(subset(loans, ProsperScore == 11))
 ```
 
 The summary of loans with a Prosper Score of 11 do seem to indicate borrowers
 that are low risk. The median StatedMonthlyIncome and OpenCreditLines are higher
-than the overall median.
+than the overall median. I think this data can be trusted and used.
 
 ```{r echo=FALSE}
 qplot(BorrowerRate, data = loans, binwidth = 0.01)
@@ -212,15 +217,16 @@ qplot(DebtToIncomeRatio,
 ```
 
 There is an even split between homeowners and non-homeowners. Does being a
-homeowner affect the Prosper Score?
+homeowner affect the Prosper Score? How about the borrower rate?
 
 The stated monthly income is skewed to the right, but the log transformation
-produces a normal distribution. There are very large outliers in the stated
+produces a more normal distribution. There are very large outliers in the stated
 monthly income data so the top 1% of data was trimmed for the plot.
 
 Similarly, a majority of the Debt to Income Ratios were between 0 and 1 with
 some values at the max of 10.01. The top 1% of data was trimmed for the plot
-above, showing a fairly normal distribution with some skew to the right.
+above, showing a fairly normal distribution with some skew to the right. I want
+to take a look at the highest values of debt to income ratio.
 
 ```{r echo=FALSE}
 summary(subset(loans, DebtToIncomeRatio > 10))
@@ -241,11 +247,11 @@ grid.arrange(lower, upper)
 ```{r echo=FALSE}
 lower <- lower +
   scale_x_continuous(
-    limits = c(quantile(loans$CreditScoreRangeLower, .01, na.rm = T), 1000))
+    limits = c(quantile(loans$CreditScoreRangeLower, .01, na.rm = T), 900))
 
 upper <- upper +
   scale_x_continuous(
-    limits = c(quantile(loans$CreditScoreRangeUpper, .01, na.rm = T), 1000))
+    limits = c(quantile(loans$CreditScoreRangeUpper, .01, na.rm = T), 900))
 
 grid.arrange(lower, upper)
 ```
@@ -368,9 +374,9 @@ MonthlyLoanPayment, and will be predictive of the LoanStatus.
 ### Did you create any new variables from existing variables in the dataset?
 
 I created CreditScore by taking the average of the upper and lower credit
-scores, and I made Term a factor variable since the numerical values fell
-within three distinct categories. I also ordered the EmploymentStatus and
-LoanStatus factors from the perception of best to worst in the eyes of
+scores, and I made Term and Prosper score factor variables since the numerical
+values fell within distinct categories. I also ordered the EmploymentStatus and
+LoanStatus factors based on my perception of best to worst from the view of
 the loan company.
 
 ### Of the features you investigated, were there any unusual distributions? \
@@ -396,7 +402,8 @@ Borrower rate has a moderate (to strong) negative correlation with Prosper score
 and credit score. There are also weak relationships between some of the other
 variables. As credit score goes up, Prosper score tends to go up. A higher
 monthly loan payment also weakly correlates with a higher stated monthly income
-and a lower borrower rate.
+and a lower borrower rate. Borrower rate seems to have moderately strong
+correlations with the most variables.
 
 ```{r echo=FALSE}
 no_plot <- c(no_cor, c('AmountDelinquent'))
@@ -415,7 +422,8 @@ pairs.panels(loans[,(names(loans) %in% cat)])
 ```
 
 There don't seem to be any obvious relationships between Prosper score and any
-of the categorical variables.
+of the categorical variables. I also included borrower rate to see if any of
+the categorical variables correlated with it, but the relationships are weak.
 
 I want to take a closer look at the relationships between Prosper score and
 the variables borrower rate, monthly loan payment, credit score, and debt to
@@ -445,12 +453,6 @@ values. We don't see many monthly loan payments greater than $500 for Prosper
 scores of 1-3, but the distribution of monthly loan payments for Prosper scores
 greater than 3 do not differ much as the score increases. Basically, borrowers
 with low Prosper scores do not get loans with high monthly payments.
-
-> Note that in the first two plots I placed ProsperScore on the x-axis. This is
-because I believe ProsperScore is used to determine the borrower rate and the 
-monthly loan payment. For the next two plots I'll place Prosper score on the
-y-axis since I believe credit score and debt to income ratio are variables that
-contribute to the calculation of the Prosper score.
 
 ```{r echo=FALSE}
 ggplot(aes(x = CreditScore, y = ProsperScore),
@@ -483,7 +485,7 @@ Here we can see the slight negative correlation between debt to income ratio
 and Prosper score.
 
 Let us also take a look at borrower rate vs. monthly loan payment and credit
-score as these variables had weak to moderate correlations with borrower rate.
+score as these variables had moderate correlations with borrower rate.
 
 ```{r echo=FALSE}
 qplot(x = MonthlyLoanPayment, y = BorrowerRate, data = loans)
@@ -498,7 +500,8 @@ ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate), data = loans) +
 Changing the plot limits and adding transparency reveals clear sections of the
 plot where borrower rate increases linearly as the monthly loan payment
 increases. Also, the highest borrower rates tend to correspond to lower monthly
-payments.
+payments. I wonder what may cause the borrower rate to increase without much or
+any increase to monthly loan payment.
 
 ```{r echo=FALSE}
 ggplot(aes(x = CreditScore, y = BorrowerRate),
@@ -612,7 +615,8 @@ Borrower rate tends to decrease as credit score increases, which makes sense. I
 was also very interested in the plot between borrower rate and monthly loan
 payment. There were clear segments that showed sectional linear relationships
 between borrower rate and monthly loan payment. I'm wondering if the distinction
-of these sections corresponds to any other variables.
+of these sections corresponds to any other variables, or if the linear
+relationships are affected by another variable.
 
 ### What was the strongest relationship you found?
 
@@ -623,7 +627,8 @@ score. Credit score also had a fairly strong correlation with borrower rate.
 
 First I want to investigate the relationship above between borrower rate and
 monthly loan payment against the categorical variables and against Prosper
-score.
+score. This relationship really caught my eye and I want to see if there is more
+to learn about it.
 
 ```{r echo=FALSE, Multivariate_Plots}
 ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate), data = loans) +
@@ -660,7 +665,7 @@ likely to have higher monthly payments and lower borrower rates.
 ```{r}
 ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
        data = subset(loans, !is.na(ProsperScore))) +
-  geom_point(aes(color = as.factor(ProsperScore))) +
+  geom_point(aes(color = ProsperScore)) +
   scale_x_continuous(limits = c(0, 1250)) +
   scale_color_brewer(palette = 'Spectral')
 ```
@@ -670,7 +675,7 @@ Prosper score decreases while holding the monthly loan payment constant. It
 seems that the linear relationship pieces of the plot noted previously seem to
 correspond to decreases in Prosper score.
 
-Let us move on and look at prosper score and borrower rate against the
+Let us move on and look at Prosper score and borrower rate against the
 categorical variables.
 
 ```{r echo=FALSE}
@@ -727,18 +732,18 @@ correspond to non-homeowners.
 ```{r echo=FALSE}
 ggplot(aes(x = CreditScore, y = BorrowerRate),
        data = subset(loans_subset_CreditScore, !is.na(ProsperScore))) +
-  geom_jitter(aes(color = as.factor(ProsperScore))) +
+  geom_jitter(aes(color = ProsperScore)) +
   scale_color_brewer(palette = 'Spectral')
 ```
 
 Borrowers with a higher Prosper score tend to have lower borrower rates, even
-if we hold credit score constant. Also, higher Prosper scores tend to correlate
-with higher credit scores and lower borrower rates.
+if we hold credit score constant.
 
-Previously I had wanted to start out by exploring the Prosper score, but the
+At first I had wanted to start out by exploring the Prosper score, but the
 data exploration has made me more interested in predicting the borrower rate.
-Below, I want to create a linear model to see how well we can predict borrower
-rate.
+The plots colored by Prosper score show the moderately strong relationships
+borrower rate has with other variables in the dataset. I want to create a linear
+model to see how well we can predict borrower rate.
 
 ```{r echo=FALSE}
 m1 <- lm(BorrowerRate ~ ProsperScore, data = loans_subset_CreditScore)
@@ -747,7 +752,7 @@ m3 <- update(m2, ~ . + MonthlyLoanPayment)
 mtable(m1, m2, m3)
 ```
 
-The model accounts for 53.5% of the variance in the borrower rate for a loan.
+The model accounts for 54.8% of the variance in the borrower rate for a loan.
 
 # Multivariate Analysis
 
@@ -771,10 +776,11 @@ status, employment status, and homeownership (other than credit score).
 strengths and limitations of your model.
 
 For the amount of variables used in this exploration (compared to the 81
-overall variables in the full data set), I think this model is fairly good. With
-the complexities of all of the factors that go into a loan borrower rate, I was
-surprised to see that Prosper score, credit score, and monthly loan payment
-alone account for 53.5% of the variance in the borrower rate.
+overall variables in the full data set), I think the linear model above is
+fairly good. With the complexities of all of the factors that go into a loan
+interest rate, I was surprised to see that Prosper score, credit score, and
+monthly loan payment alone account for 54.8% of the variance in the borrower
+rate.
 
 The model obviously has its limitations since there are many other variables
 that likely affect affect borrower rate in the full data set (and outside it).
@@ -827,7 +833,7 @@ monthly loan payments go up, borrower rate and loan payment increase together.
 ```{r echo=FALSE, Plot_Three}
 ggplot(aes(x = MonthlyLoanPayment, y = BorrowerRate),
        data = subset(loans, !is.na(ProsperScore))) +
-  geom_point(aes(color = as.factor(ProsperScore))) +
+  geom_point(aes(color = ProsperScore)) +
   scale_x_continuous(limits = c(0, 1250)) +
   scale_color_brewer(palette = 'Spectral') +
   labs(title = 'Borrower Rate by Loan Payment and Prosper Score',
@@ -854,10 +860,33 @@ loan with a higher loan payment for riskier borrowers.
 
 # Reflection
 
-> **Tip**: Here's the final step! Reflect on the exploration you performed and
-the insights you found. What were some of the struggles that you went through?
-What went well? What was surprising? Make sure you include an insight into
-future work that could be done with the dataset.
+The full dataset used here contains almost 114,000 loans with 81 variables.
+There is a ton of information in the dataset, and in this exploration I decided
+to focus on 13 variables that peaked my interest.
 
-> **Tip**: Don't forget to remove this, and the other **Tip** sections before
-saving your final work and knitting the final report!
+I began by exploring the individual distributions of the variables in the
+dataset. Then, I looked at relationships between the variables and further
+explored the strongest trends. The exploration culminated in an interest in
+creating a linear model to predict borrower rate based on three of the
+variables.
+
+Although I started off most interested in Prosper score, the trends among the
+variables I chose to explore made borrower rate the more intriguing variable.
+By choosing only 13 variables to explore from the full dataset, I absolutely
+introduced some limitations to the model. There are many other factors that I
+did not explore relating to the borrower rate, which is the reason the model
+only accounts for 54.8% of the variance in borrower rate.
+
+Other limitations include the fact that this data all comes from Prosper. The
+relationships and models that come from this dataset may be totally different
+for loans at another company. The dataset also hasn't been updated since 2014.
+Loan rates change frequently and so this data may not properly represent the
+current state of loans.
+
+As mentioned above, there are 81 variables in the full dataset for each loan.
+I'd be interested in exploring the other variables in depth as well to see
+which other variables may contribute to borrower rate. With the full dataset, I
+also think a model could be built to predict the Prosper score. It would be
+interesting to see which factors go into the generation of a Prosper score
+and if a model could be built that could accurately predict what a borrower's
+Prosper score would be.
