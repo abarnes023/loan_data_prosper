@@ -15,8 +15,8 @@ library(RColorBrewer)
 library(memisc)
 ```
 
-```{r gloabl_options, echo=FALSE}
-opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE)
+```{r gloabl_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
