@@ -460,34 +460,34 @@ greater than 3 do not differ much as the score increases. Basically, borrowers
 with low Prosper scores do not get loans with high monthly payments.
 
 ```{r echo=FALSE}
-ggplot(aes(x = CreditScore, y = ProsperScore),
+ggplot(aes(x = as.factor(CreditScore), y = ProsperScore),
        data = subset(loans_subset_CreditScore, !is.na(ProsperScore))) +
-  geom_jitter()
+  geom_boxplot()
 ```
 
-Similarly to the borrower rate, a low Prosper score typically corresponds to a
-low credit score and a high Prosper score with a high credit score, but the
-middle range of Prosper scores correspond to a wide range of credit scores. In
-other words, it's unlikely for a borrower with a low credit score to have a
-high Prosper score, and vice versa for a borrower with a high credit score. If
-the borrower has a middle range credit score (650-750), their Prosper score
-can range vastly.
+There is a clear trend here showing that a higher credit score corresponds with
+higher Prosper scores.
 
 ```{r echo=FALSE}
 ggplot(aes(x = DebtToIncomeRatio, y = ProsperScore),
        data = subset(loans, !is.na(ProsperScore))) +
-  geom_jitter()
+  geom_jitter(alpha = 0.2) +
+  scale_x_continuous(limits = c(0, quantile(loans$DebtToIncomeRatio, 0.99,
+                                            na.rm = TRUE)))
 ```
 
 ```{r echo=FALSE}
-ggplot(aes(x = DebtToIncomeRatio, y = ProsperScore),
+ggplot(aes(y = DebtToIncomeRatio, x = as.factor(ProsperScore)),
        data = subset(loans, !is.na(ProsperScore))) +
-  geom_jitter(alpha = 0.1) +
-  scale_x_continuous(limits = c(0, 2.5))
+  geom_boxplot() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, quantile(loans$DebtToIncomeRatio, 0.99,
+                                            na.rm = TRUE)))
 ```
 
-Here we can see the slight negative correlation between debt to income ratio
-and Prosper score.
+In both the scatterplot and boxplot above we can see the slight negative
+correlation between debt to income ratio and Prosper score. Both plots
+removed the top 1% of debt to income ratios.
 
 Let us also take a look at borrower rate vs. monthly loan payment and credit
 score as these variables had moderate correlations with borrower rate.
