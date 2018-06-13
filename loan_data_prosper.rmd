@@ -1,7 +1,11 @@
 ---
-title: 'Loan Data from Prosper'
-author: 'Alexander Barnes'
-output: html_document
+title: 'Prosper Loans'
+author: Alexander Barnes
+date: June 12, 2018
+output:
+  html_document:
+    toc: true
+    toc_float: true
 ---
 ========================================================
 
